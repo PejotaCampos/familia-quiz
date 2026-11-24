@@ -4,4 +4,7 @@
     <Project Path="src/FamiliaQuiz.Server/FamiliaQuiz.Server.csproj" />
     <Project Path="src/FamiliaQuiz.Shared/FamiliaQuiz.Shared.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FamiliaQuiz.Server.Tests/FamiliaQuiz.Server.Tests.csproj" />
+  </Folder>
 </Solution>

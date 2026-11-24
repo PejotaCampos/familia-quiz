@@ -1,16 +1,35 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+@implements IDisposable
+@inject GameClient Game
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+<div class="app">
+    <header class="topbar">
+        <span class="brand">🪜 FamiliaQuiz</span>
+        @if (Game.State is { } s)
+        {
+            <span class="topbar-room">Sala <strong>@s.RoomCode</strong></span>
+        }
+        <span class="conn conn-@Game.Status.ToString().ToLowerInvariant()" title="Conexão com o servidor">
+            @(Game.Status switch
+            {
+                ConnectionStatus.Connected => "● Conectado",
+                ConnectionStatus.Reconnecting => "● Reconectando…",
+                ConnectionStatus.Connecting => "● Conectando…",
+                _ => "● Sem conexão",
+            })
+        </span>
+    </header>
 
-        <article class="content px-4">
-            @Body
-        </article>
+    <main class="content">
+        @Body
     </main>
 </div>
+
+@code {
+    protected override void OnInitialized() => Game.Changed += OnChanged;
+
+    // Changed can fire from a SignalR callback, so marshal back to the renderer with InvokeAsync.
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Game.Changed -= OnChanged;
+}

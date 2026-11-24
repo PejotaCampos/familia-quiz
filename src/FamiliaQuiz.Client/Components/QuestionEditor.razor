@@ -1,0 +1,161 @@
+@implements IDisposable
+@inject GameClient Game
+@inject KeyboardService Keyboard
+
+<h1>Você é o Rei! 👑</h1>
+<p class="muted">Escolha ou escreva uma pergunta sobre você e marque a resposta certa — só você vai ver.</p>
+
+<form class="editor" @onsubmit="SubmitAsync">
+    <label>
+        Pergunta
+        <textarea class="input" rows="2" @bind="_text" @bind:event="oninput"
+                  maxlength="@GameLimits.MaxQuestionLength" placeholder="Ex.: Qual é a minha comida favorita?"></textarea>
+    </label>
+
+    <div class="muted small">Opções (clique no número para marcar a resposta certa, ou use as teclas 1–4):</div>
+    @for (var i = 0; i < _options.Count; i++)
+    {
+        var idx = i; // capture for the lambdas below
+        <div class="option-edit @(_correct == idx ? "is-correct" : "")">
+            <button type="button" class="option-key" title="Marcar como resposta certa" data-enter-shortcut @onclick="() => _correct = idx">
+                @(_correct == idx ? "✔" : (idx + 1).ToString())
+            </button>
+            <input class="input" @bind="_options[idx]" @bind:event="oninput"
+                   maxlength="@GameLimits.MaxOptionLength" placeholder="Opção @(idx + 1)" />
+            @if (_options.Count > GameLimits.MinOptions)
+            {
+                <button type="button" class="btn-link" title="Remover opção" @onclick="() => RemoveOption(idx)">✕</button>
+            }
+        </div>
+    }
+    @if (_options.Count < GameLimits.MaxOptions)
+    {
+        <button type="button" class="btn btn-small" @onclick="() => _options.Add(string.Empty)">+ opção</button>
+    }
+
+    @if (Problem is { } problem)
+    {
+        <p class="hint">@problem</p>
+    }
+
+    <div class="row wrap">
+        <button type="submit" class="btn btn-primary grow" disabled="@(Problem is not null || _busy)">Fazer a pergunta ▶ <span class="kbd">Enter</span></button>
+        <button type="button" class="btn" @onclick="Clear">Nova em branco</button>
+    </div>
+</form>
+
+<h2>Banco de perguntas</h2>
+<div class="row wrap">
+    <button class="btn btn-small" data-enter-shortcut @onclick="PickRandom">🎲 Pergunta aleatória</button>
+    <label class="checkbox"><input type="checkbox" @bind="_showUsed" /> mostrar já usadas</label>
+</div>
+<div class="bank">
+    @if (_bank is null)
+    {
+        <p class="muted">Carregando…</p>
+    }
+    else
+    {
+        @foreach (var q in VisibleBank)
+        {
+            <button class="bank-item @(q.Id == _sourceId ? "selected" : "")" data-enter-shortcut @onclick="() => Load(q)">
+                <span class="tag">@q.Category</span> @q.Text
+                @if (State.UsedQuestionIds.Contains(q.Id)) { <span class="tag">usada</span> }
+            </button>
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public RoomStateDto State { get; set; } = default!;
+
+    private IReadOnlyList<QuestionDto>? _bank;
+    private string _text = "";
+    private List<string> _options = ["", "", "", ""];
+    private int? _correct;
+    private string? _sourceId;
+    private bool _showUsed;
+    private bool _busy;
+
+    private IEnumerable<QuestionDto> VisibleBank =>
+        (_bank ?? []).Where(q => _showUsed || !State.UsedQuestionIds.Contains(q.Id));
+
+    /// <summary>What is still missing before the question can be asked (null = ready).</summary>
+    private string? Problem
+    {
+        get
+        {
+            var filled = _options.Select(o => o.Trim()).ToList();
+            if (string.IsNullOrWhiteSpace(_text)) return "Escreva a pergunta.";
+            if (filled.Any(o => o.Length == 0)) return "Preencha todas as opções (ou remova as vazias).";
+            if (filled.Distinct(StringComparer.OrdinalIgnoreCase).Count() != filled.Count) return "As opções precisam ser diferentes.";
+            if (_correct is null) return "Marque qual é a resposta certa.";
+            return null;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Keyboard.KeyPressed += OnKeyAsync;
+        _bank = await Game.GetQuestionBankAsync();
+    }
+
+    private void Load(QuestionDto q)
+    {
+        _sourceId = q.Id;
+        _text = q.Text;
+        _options = q.Options.ToList();
+        _correct = null; // the King answers live, every time
+    }
+
+    private void PickRandom()
+    {
+        var candidates = (_bank ?? []).Where(q => !State.UsedQuestionIds.Contains(q.Id) && q.Id != _sourceId).ToList();
+        if (candidates.Count == 0) candidates = (_bank ?? []).ToList();
+        if (candidates.Count > 0) Load(candidates[Random.Shared.Next(candidates.Count)]);
+    }
+
+    private void Clear()
+    {
+        _sourceId = null;
+        _text = "";
+        _options = ["", "", "", ""];
+        _correct = null;
+    }
+
+    private void RemoveOption(int index)
+    {
+        _options.RemoveAt(index);
+        if (_correct == index) _correct = null;
+        else if (_correct > index) _correct--;
+    }
+
+    private async Task OnKeyAsync(string key)
+    {
+        if (key == "Enter") await SubmitAsync();
+        else if (int.TryParse(key, out var n) && n >= 1 && n <= _options.Count) _correct = n - 1;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (Problem is not null || _busy || _correct is null) return;
+        _busy = true;
+        try
+        {
+            await Game.SubmitQuestionAsync(new SubmitQuestionRequest
+            {
+                Text = _text.Trim(),
+                Options = _options.Select(o => o.Trim()).ToList(),
+                CorrectOptionIndex = _correct.Value,
+                SourceQuestionId = _sourceId,
+            });
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    public void Dispose() => Keyboard.KeyPressed -= OnKeyAsync;
+}

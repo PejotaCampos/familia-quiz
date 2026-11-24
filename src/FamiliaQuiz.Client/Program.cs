@@ -1,11 +1,15 @@
+using FamiliaQuiz.Client;
+using FamiliaQuiz.Client.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using FamiliaQuiz.Client;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+// In WebAssembly there is one user per app instance, so "scoped" behaves like a singleton.
+builder.Services.AddScoped<SessionStore>();
+builder.Services.AddScoped<KeyboardService>();
+builder.Services.AddScoped<GameClient>();
 
 await builder.Build().RunAsync();

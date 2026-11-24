@@ -1,0 +1,17 @@
+@implements IDisposable
+@inject GameClient Game
+
+@if (Game.LastError is { } error)
+{
+    <div class="error-banner" role="alert">
+        <span>@Texts.Error(error)</span>
+        <button class="btn-link" @onclick="Game.ClearError" aria-label="Fechar">✕</button>
+    </div>
+}
+
+@code {
+    // A component without parameters is not re-rendered by its parent, so listen for changes directly.
+    protected override void OnInitialized() => Game.Changed += OnChanged;
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+    public void Dispose() => Game.Changed -= OnChanged;
+}

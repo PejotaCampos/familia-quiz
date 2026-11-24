@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "server",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "src/FamiliaQuiz.Server", "--launch-profile", "http"],
+      "port": 5075
+    },
+    {
+      "name": "client",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "src/FamiliaQuiz.Client", "--launch-profile", "http"],
+      "port": 5264
+    }
+  ]
+}

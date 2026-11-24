@@ -1,0 +1,107 @@
+@implements IDisposable
+@inject GameClient Game
+@inject KeyboardService Keyboard
+
+@if (State.Round is { } round)
+{
+    <div class="question-header">
+        <span class="muted">Pergunta @round.Number sobre 👑 <strong>@State.King()?.Name</strong></span>
+        <h1 class="question">@round.Text</h1>
+    </div>
+
+    @if (State.AmIKing())
+    {
+        <div class="options">
+            @for (var i = 0; i < round.Options.Count; i++)
+            {
+                <div class="option @(i == State.CorrectOptionIndex ? "is-correct" : "")">
+                    <span class="option-key">@(i + 1)</span>
+                    <span class="grow">@round.Options[i]</span>
+                    @if (i == State.CorrectOptionIndex) { <span class="tag">sua resposta</span> }
+                </div>
+            }
+        </div>
+
+        <p>Já responderam: <strong>@Answered</strong> de @State.Guessers().Count()</p>
+        <ul class="player-list inline">
+            @foreach (var p in State.Guessers())
+            {
+                <li class="@(p.IsConnected ? "" : "offline")">@(p.HasGuessed ? "✔" : "…") @p.Name</li>
+            }
+        </ul>
+
+        <div class="row wrap">
+            <button class="btn btn-primary grow" @onclick="Game.RevealAsync">Revelar agora 🎉 <span class="kbd">Enter</span></button>
+            <button class="btn" @onclick="Game.SkipQuestionAsync">Pular pergunta</button>
+        </div>
+        <p class="muted small">A resposta é revelada sozinha quando todo mundo responder.</p>
+    }
+    else
+    {
+        <div class="options">
+            @for (var i = 0; i < round.Options.Count; i++)
+            {
+                var idx = i;
+                <button class="option option-button @(_selected == idx ? "is-selected" : "")" data-enter-shortcut @onclick="() => _selected = idx">
+                    <span class="option-key">@(idx + 1)</span>
+                    <span class="grow">@round.Options[idx]</span>
+                    @if (State.MyGuess == idx) { <span class="tag">enviada ✔</span> }
+                </button>
+            }
+        </div>
+
+        <button class="btn btn-primary btn-block" disabled="@(_selected is null || _selected == State.MyGuess)" @onclick="ConfirmAsync">
+            Confirmar resposta <span class="kbd">Enter</span>
+        </button>
+        @if (State.MyGuess is not null)
+        {
+            <p class="muted center">Resposta enviada! Dá para trocar até a revelação.</p>
+        }
+        else
+        {
+            <p class="muted center small">Dica: use as teclas 1–@round.Options.Count e Enter.</p>
+        }
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public RoomStateDto State { get; set; } = default!;
+
+    private int? _selected;
+    private int _roundNumber;
+
+    private int Answered => State.Guessers().Count(p => p.HasGuessed);
+
+    protected override void OnInitialized() => Keyboard.KeyPressed += OnKeyAsync;
+
+    protected override void OnParametersSet()
+    {
+        // New question: start with nothing selected (or the guess the server remembers after a reconnect).
+        if (State.Round is { } r && r.Number != _roundNumber)
+        {
+            _roundNumber = r.Number;
+            _selected = State.MyGuess;
+        }
+    }
+
+    private async Task OnKeyAsync(string key)
+    {
+        if (State.AmIKing())
+        {
+            if (key == "Enter") await Game.RevealAsync();
+            return;
+        }
+
+        if (key == "Enter") await ConfirmAsync();
+        else if (int.TryParse(key, out var n) && State.Round is { } r && n >= 1 && n <= r.Options.Count) _selected = n - 1;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ConfirmAsync()
+    {
+        if (_selected is { } choice && choice != State.MyGuess)
+            await Game.SubmitGuessAsync(choice);
+    }
+
+    public void Dispose() => Keyboard.KeyPressed -= OnKeyAsync;
+}

@@ -1,0 +1,32 @@
+@inject GameClient Game
+
+<h1>Quem começa no topo da escada?</h1>
+
+@if (State.AmIHost())
+{
+    <p>Escolha o primeiro Rei 👑. Todas as perguntas da rodada serão sobre essa pessoa.</p>
+    <div class="choice-grid">
+        @foreach (var p in State.Players)
+        {
+            <button class="btn btn-choice" disabled="@(!p.IsConnected)" @onclick="() => Game.ChooseKingAsync(p.Id)">
+                👑 @p.Name
+            </button>
+        }
+    </div>
+    <button class="btn btn-block" @onclick="PickRandomAsync">🎲 Sortear</button>
+}
+else
+{
+    <p class="big center">@State.NameOf(State.HostPlayerId) está escolhendo o primeiro Rei…</p>
+}
+
+@code {
+    [Parameter, EditorRequired] public RoomStateDto State { get; set; } = default!;
+
+    private Task PickRandomAsync()
+    {
+        var candidates = State.Players.Where(p => p.IsConnected).ToList();
+        if (candidates.Count == 0) return Task.CompletedTask;
+        return Game.ChooseKingAsync(candidates[Random.Shared.Next(candidates.Count)].Id);
+    }
+}

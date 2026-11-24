@@ -1,0 +1,44 @@
+@* Main game screen: the current phase on the left, the stairs on the right (stacked on narrow windows). *@
+
+<div class="game-grid">
+    <section class="panel main-panel">
+        <ErrorBanner />
+        @switch (State.Phase)
+        {
+            case GamePhase.Lobby:
+                <Lobby State="State" />
+                break;
+            case GamePhase.ChoosingKing:
+                <ChooseKingPanel State="State" />
+                break;
+            case GamePhase.KingPicking when State.AmIKing():
+                <QuestionEditor State="State" />
+                break;
+            case GamePhase.KingPicking:
+                <div class="center waiting">
+                    <div class="crown-big">👑</div>
+                    <p class="big"><strong>@State.King()?.Name</strong> está escolhendo uma pergunta sobre si mesmo(a)…</p>
+                    <p class="muted">Prepare-se para adivinhar!</p>
+                </div>
+                break;
+            case GamePhase.Guessing:
+                <GuessingPanel State="State" />
+                break;
+            case GamePhase.Reveal:
+                <RevealPanel State="State" />
+                break;
+            case GamePhase.Ended:
+                <EndedPanel State="State" />
+                break;
+        }
+    </section>
+
+    <aside class="panel side-panel">
+        <Stairs State="State" />
+    </aside>
+</div>
+
+@code {
+    // Passing the state down as a parameter makes child components re-render on every update.
+    [Parameter, EditorRequired] public RoomStateDto State { get; set; } = default!;
+}

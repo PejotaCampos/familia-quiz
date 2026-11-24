@@ -1,11 +1,11 @@
 {
-  "name": "FamiliaQuiz.Client",
-  "short_name": "FamiliaQuiz.Client",
+  "name": "FamiliaQuiz",
+  "short_name": "FamiliaQuiz",
   "id": "./",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#03173d",
+  "background_color": "#fbf6ee",
+  "theme_color": "#2b2118",
   "prefer_related_applications": false,
   "icons": [
     {

@@ -1,0 +1,60 @@
+@inject GameClient Game
+
+@* The score track: everyone except the King climbs one step per correct answer. *@
+
+<h2 class="stairs-title">A escada</h2>
+
+<div class="throne">
+    @if (State.King() is { } king)
+    {
+        <span class="crown">👑</span>
+        <span>No topo: <strong>@king.Name</strong></span>
+        @if (!king.IsConnected) { <span class="tag">offline</span> }
+    }
+    else
+    {
+        <span class="muted">Ainda sem Rei</span>
+    }
+</div>
+
+<ol class="stairs" style="--steps: @State.StepCount">
+    @for (var step = State.StepCount; step >= 0; step--)
+    {
+        var s = step;
+        var here = State.Guessers().Where(p => p.Position == s).ToList();
+        <li class="step @(s == State.StepCount ? "step-top" : "")" style="--step: @s">
+            <span class="step-label">@(s == State.StepCount ? "🏁" : s == 0 ? "início" : s.ToString())</span>
+            <span class="step-players">
+                @foreach (var p in here)
+                {
+                    <span class="chip @(p.IsConnected ? "" : "offline") @(p.Id == State.MyPlayerId ? "chip-me" : "")"
+                          title="@(p.IsConnected ? p.Name : p.Name + " (offline)")">
+                        @if (State.Phase == GamePhase.Guessing && p.HasGuessed) { <span>✔</span> }
+                        @p.Name
+                    </span>
+                }
+            </span>
+        </li>
+    }
+</ol>
+
+@if (State.AmIHost() && State.Phase is not GamePhase.Lobby and not GamePhase.Ended)
+{
+    <details class="host-tools">
+        <summary>⚙ Opções do anfitrião</summary>
+        <p class="small muted">Trocar o Rei (ex.: se ele saiu da chamada). As posições na escada são mantidas.</p>
+        <div class="row wrap">
+            @foreach (var p in State.Players.Where(p => p.Id != State.KingPlayerId))
+            {
+                <button class="btn btn-small" @onclick="() => Game.ChooseKingAsync(p.Id)">👑 @p.Name</button>
+            }
+        </div>
+        <button class="btn btn-small btn-danger" @onclick="Game.EndGameAsync">Encerrar o jogo</button>
+    </details>
+}
+
+<button class="btn-link small leave" @onclick="Game.LeaveAsync">Sair da sala</button>
+
+@code {
+    [Parameter, EditorRequired] public RoomStateDto State { get; set; } = default!;
+}

@@ -1,7 +1,46 @@
 ﻿@page "/"
+@implements IAsyncDisposable
+@inject GameClient Game
+@inject KeyboardService Keyboard
 
-<PageTitle>Home</PageTitle>
+<PageTitle>@(Game.State is { } s ? $"FamiliaQuiz · {s.RoomCode}" : "FamiliaQuiz")</PageTitle>
 
-<h1>Hello, world!</h1>
+@if (!Game.IsInitialized)
+{
+    <div class="panel center">
+        <p class="big">Carregando…</p>
+        <p class="muted">Se o servidor estava dormindo, isso pode levar até um minuto. ☕</p>
+    </div>
+}
+else if (Game.State is null)
+{
+    <EntryForm InitialRoomCode="@Sala" />
+}
+else
+{
+    <GameView State="Game.State" />
+}
 
-Welcome to your new app.
+@code {
+    // Join links look like https://site/?sala=ABCD (query string, so static hosts need no SPA 404 trick).
+    [SupplyParameterFromQuery(Name = "sala")]
+    public string? Sala { get; set; }
+
+    protected override void OnInitialized() => Game.Changed += OnChanged;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // JS interop (localStorage, key listener) is only safe once the page has rendered.
+        if (!firstRender) return;
+        await Keyboard.InitializeAsync();
+        await Game.InitializeAsync();
+    }
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+
+    public ValueTask DisposeAsync()
+    {
+        Game.Changed -= OnChanged;
+        return ValueTask.CompletedTask;
+    }
+}

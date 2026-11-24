@@ -1,0 +1,70 @@
+@inject GameClient Game
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<h1>Sala de espera</h1>
+
+<div class="room-code-box">
+    <div class="muted">Código da sala</div>
+    <div class="room-code">@State.RoomCode</div>
+</div>
+
+<p>Convide a família pelo WhatsApp ou passe o código:</p>
+<div class="row wrap">
+    <a class="btn btn-whatsapp" href="@WhatsAppUrl" target="_blank" rel="noopener">Enviar no WhatsApp</a>
+    <button class="btn" @onclick="CopyLinkAsync">@(_copied ? "Link copiado! ✔" : "Copiar link")</button>
+</div>
+
+<h2>Na sala (@State.Players.Count)</h2>
+<ul class="player-list">
+    @foreach (var p in State.Players)
+    {
+        <li class="@(p.IsConnected ? "" : "offline")">
+            @p.Name
+            @if (p.IsHost) { <span class="tag">anfitrião</span> }
+            @if (p.Id == State.MyPlayerId) { <span class="tag tag-me">você</span> }
+            @if (!p.IsConnected) { <span class="tag">offline</span> }
+        </li>
+    }
+</ul>
+
+<p class="muted">Escada com <strong>@State.StepCount degraus</strong>. Quem chegar ao topo primeiro vira o próximo Rei!</p>
+
+@if (State.AmIHost())
+{
+    <button class="btn btn-primary btn-block" disabled="@(State.Players.Count < 2)" @onclick="Game.StartGameAsync">
+        Começar o jogo ▶
+    </button>
+    @if (State.Players.Count < 2)
+    {
+        <p class="muted center">Esperando mais alguém entrar…</p>
+    }
+}
+else
+{
+    <p class="big center">Esperando <strong>@State.NameOf(State.HostPlayerId)</strong> começar o jogo…</p>
+}
+
+@code {
+    [Parameter, EditorRequired] public RoomStateDto State { get; set; } = default!;
+
+    private bool _copied;
+
+    private string JoinLink => $"{Nav.BaseUri}?sala={State.RoomCode}";
+
+    private string WhatsAppUrl =>
+        "https://wa.me/?text=" + Uri.EscapeDataString($"Vem jogar o FamiliaQuiz! 🪜 Sala {State.RoomCode}: {JoinLink}");
+
+    private async Task CopyLinkAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("familiaQuiz.copyText", JoinLink);
+            _copied = true;
+        }
+        catch (JSException)
+        {
+            // Clipboard can be blocked; the code is on screen anyway.
+        }
+    }
+}

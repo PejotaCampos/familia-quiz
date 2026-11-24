@@ -1,0 +1,11 @@
+@inject GameClient Game
+
+<div class="center">
+    <h1>Fim de jogo! 💛</h1>
+    <p class="big">Obrigado por jogar. Até a próxima!</p>
+    <button class="btn btn-primary" @onclick="Game.LeaveAsync">Voltar ao início</button>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public RoomStateDto State { get; set; } = default!;
+}

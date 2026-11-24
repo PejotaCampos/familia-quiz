@@ -1,0 +1,74 @@
+@inject GameClient Game
+
+<div class="entry">
+    <section class="panel">
+        <h1>Entrar numa sala</h1>
+        <form @onsubmit="JoinAsync">
+            <label>
+                Código da sala
+                <input class="input code-input" @bind="_roomCode" @bind:event="oninput"
+                       maxlength="4" placeholder="ABCD" autocomplete="off" autocapitalize="characters" />
+            </label>
+            <label>
+                Seu nome
+                <input class="input" @bind="_name" @bind:event="oninput" maxlength="@GameLimits.MaxNameLength" placeholder="Ex.: Vovó Maria" />
+            </label>
+            <button type="submit" class="btn btn-primary btn-block" disabled="@(_busy || !CanJoin)">Entrar ▶</button>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2>Criar uma sala nova</h2>
+        <form @onsubmit="CreateAsync">
+            <label>
+                Seu nome
+                <input class="input" @bind="_name" @bind:event="oninput" maxlength="@GameLimits.MaxNameLength" placeholder="Ex.: Pedro" />
+            </label>
+            <label>
+                Degraus da escada
+                <select class="input" @bind="_steps">
+                    @for (var i = GameLimits.MinSteps; i <= GameLimits.MaxSteps; i++)
+                    {
+                        <option value="@i">@i degraus</option>
+                    }
+                </select>
+            </label>
+            <button type="submit" class="btn btn-block" disabled="@(_busy || string.IsNullOrWhiteSpace(_name))">Criar sala</button>
+        </form>
+    </section>
+
+    <ErrorBanner />
+
+    @if (_busy || Game.Status != ConnectionStatus.Connected)
+    {
+        <p class="muted center">Conectando ao servidor… na primeira vez do dia pode levar até um minuto. ☕</p>
+    }
+</div>
+
+@code {
+    [Parameter] public string? InitialRoomCode { get; set; }
+
+    private string _roomCode = "";
+    private string _name = "";
+    private int _steps = GameLimits.DefaultSteps;
+    private bool _busy;
+
+    private bool CanJoin => _roomCode.Trim().Length == 4 && !string.IsNullOrWhiteSpace(_name);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _roomCode = (InitialRoomCode ?? "").Trim().ToUpperInvariant();
+        _name = await Game.GetRememberedNameAsync();
+    }
+
+    private Task JoinAsync() => RunAsync(() => Game.JoinRoomAsync(_roomCode, _name));
+    private Task CreateAsync() => RunAsync(() => Game.CreateRoomAsync(_name, _steps));
+
+    private async Task RunAsync(Func<Task<bool>> action)
+    {
+        if (_busy) return;
+        _busy = true;
+        try { await action(); }
+        finally { _busy = false; }
+    }
+}
