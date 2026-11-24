@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FamiliaQuiz.Client/FamiliaQuiz.Client.csproj" />
+    <Project Path="src/FamiliaQuiz.Server/FamiliaQuiz.Server.csproj" />
+    <Project Path="src/FamiliaQuiz.Shared/FamiliaQuiz.Shared.csproj" />
+  </Folder>
+</Solution>
