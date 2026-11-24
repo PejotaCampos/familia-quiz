@@ -5,8 +5,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FamiliaQuiz</title>
-    <!-- On GitHub Pages under a sub-path, change this to e.g. "/familia-quiz/". -->
     <base href="/" />
+    <script>
+        // GitHub Pages serves the app under /<repo-name>/: point the base there.
+        // Done at runtime (not by editing the published file) so the service worker's
+        // integrity hash for index.html stays valid.
+        if (location.hostname.endsWith('.github.io')) {
+            document.querySelector('base').href = '/' + location.pathname.split('/')[1] + '/';
+        }
+    </script>
     <link rel="preload" id="webassembly" />
     <link rel="stylesheet" href="css/app.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
