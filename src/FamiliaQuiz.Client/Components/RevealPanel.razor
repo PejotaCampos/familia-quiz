@@ -4,25 +4,25 @@
 
 @if (State.Round is { } round)
 {
+    var special = round.Kind == RoundKind.Special;
+    @if (special) { <div class="special-banner">🎲 Rodada especial!</div> }
     <div class="question-header">
         <span class="muted">Pergunta @round.Number sobre 👑 <strong>@State.King()?.Name</strong></span>
         <h1 class="question">@round.Text</h1>
     </div>
 
-    <div class="options">
+    <div class="options @(special ? "options-grid" : "")">
         @for (var i = 0; i < round.Options.Count; i++)
         {
             var idx = i;
             var pickers = State.Guesses.Where(g => g.OptionIndex == idx).Select(g => State.NameOf(g.PlayerId)).ToList();
-            <div class="option @(idx == State.CorrectOptionIndex ? "is-correct" : "is-dim")">
+            <div class="option @(special ? "option-card" : "") @(idx == State.CorrectOptionIndex ? "is-correct" : "is-dim")">
                 <span class="option-key">@(idx == State.CorrectOptionIndex ? "✔" : (idx + 1).ToString())</span>
-                <span class="grow">
-                    @round.Options[idx]
-                    @if (pickers.Count > 0)
-                    {
-                        <span class="pickers">@string.Join(", ", pickers)</span>
-                    }
-                </span>
+                <OptionVisual Option="round.Options[idx]" />
+                @if (pickers.Count > 0)
+                {
+                    <span class="pickers">@string.Join(", ", pickers)</span>
+                }
             </div>
         }
     </div>
@@ -51,6 +51,10 @@
     {
         <p class="big center">🏆 Empate no topo! @(State.AmIKing() ? "Escolha quem será o novo Rei:" : $"{State.King()?.Name} vai escolher o novo Rei…")</p>
     }
+    else if (State.NextRoundIsSpecial)
+    {
+        <p class="special-banner">🎲 Alguém chegou ao meio da escada: a próxima rodada é especial!</p>
+    }
 
     @if (State.AmIKing())
     {
@@ -66,7 +70,8 @@
         else
         {
             <button class="btn btn-primary btn-block" @onclick="() => Game.ContinueAfterRevealAsync(null)">
-                @(State.TopPlayerIds.Count == 1 ? $"Coroar {State.NameOf(State.TopPlayerIds[0])} 👑" : "Próxima pergunta ▶")
+                @(State.TopPlayerIds.Count == 1 ? $"Coroar {State.NameOf(State.TopPlayerIds[0])} 👑"
+                  : State.NextRoundIsSpecial ? "Rodada especial 🎲" : "Próxima pergunta ▶")
                 <span class="kbd">Enter</span>
             </button>
         }

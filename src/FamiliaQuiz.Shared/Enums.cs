@@ -19,6 +19,21 @@ namespace FamiliaQuiz.Shared
 
         /// <summary>The host ended the game.</summary>
         Ended = 5,
+
+        /// <summary>
+        /// Special round: the server picked a themed question with fixed (picture) options;
+        /// the King secretly chooses one of them. Then it continues as Guessing/Reveal.
+        /// </summary>
+        SpecialPicking = 6,
+    }
+
+    public enum RoundKind
+    {
+        /// <summary>A question chosen or written by the King.</summary>
+        Normal = 0,
+
+        /// <summary>A themed special round with fixed picture options.</summary>
+        Special = 1,
     }
 
     /// <summary>

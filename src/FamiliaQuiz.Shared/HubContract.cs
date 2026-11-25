@@ -35,13 +35,16 @@ namespace FamiliaQuiz.Shared
         /// <summary>King only. (SubmitQuestionRequest) -> OperationResult</summary>
         public const string SubmitQuestion = "SubmitQuestion";
 
+        /// <summary>King only, during SpecialPicking. (int optionIndex) -> OperationResult</summary>
+        public const string SubmitSpecialAnswer = "SubmitSpecialAnswer";
+
         /// <summary>Guessers only. (int optionIndex) -> OperationResult. Can be changed until the reveal.</summary>
         public const string SubmitGuess = "SubmitGuess";
 
         /// <summary>King only. () -> OperationResult</summary>
         public const string Reveal = "Reveal";
 
-        /// <summary>King only. () -> OperationResult</summary>
+        /// <summary>King only, during Guessing or SpecialPicking. () -> OperationResult</summary>
         public const string SkipQuestion = "SkipQuestion";
 
         /// <summary>King only. (string? nextKingPlayerId) -> OperationResult. The id is required on a tie at the top.</summary>

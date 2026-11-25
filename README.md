@@ -26,6 +26,21 @@ Tests: `dotnet test`.
 | `src/FamiliaQuiz.Client` | Blazor WebAssembly standalone UI (pt-BR) |
 | `tests/FamiliaQuiz.Server.Tests` | xUnit tests for the game rules |
 
+## Adding content
+
+- **Questions about the King:** `src/FamiliaQuiz.Server/Data/questions.json`.
+- **Special rounds** (picture rounds, played once per reign when someone reaches the middle
+  step 🎲): `src/FamiliaQuiz.Server/Data/special-rounds.json`. Each theme has 2–4 options:
+
+  ```json
+  { "text": "Katana", "emoji": "🗡️", "image": "arma-zumbi/katana.webp" }
+  ```
+
+  `image` is optional and relative to `src/FamiliaQuiz.Client/wwwroot/images/special/`.
+  Without an image (or if it fails to load) the emoji is shown. Keep images small:
+  square-ish, ~400px, WebP. Record where each image came from in `CREDITS.md`.
+- Server data changes need a Render redeploy; new images need a client (GitHub Pages) deploy.
+
 ## Deploy (free)
 
 - **Server (Render, Docker):** Dockerfile path `src/FamiliaQuiz.Server/Dockerfile`, context = repo root.

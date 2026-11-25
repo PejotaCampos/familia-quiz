@@ -23,7 +23,9 @@
         var s = step;
         var here = State.Guessers().Where(p => p.Position == s).ToList();
         <li class="step @(s == State.StepCount ? "step-top" : "")" style="--step: @s">
-            <span class="step-label">@(s == State.StepCount ? "🏁" : s == 0 ? "início" : s.ToString())</span>
+            <span class="step-label" title="@(s == State.SpecialStep ? "Rodada especial ao chegar aqui" : null)">
+                @(s == State.StepCount ? "🏁" : s == 0 ? "início" : s == State.SpecialStep ? "🎲" : s.ToString())
+            </span>
             <span class="step-players">
                 @foreach (var p in here)
                 {

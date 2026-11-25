@@ -122,6 +122,7 @@ public sealed class GameClient : IAsyncDisposable
     public Task<bool> StartGameAsync() => ActAsync(HubMethods.StartGame);
     public Task<bool> ChooseKingAsync(string playerId) => ActAsync(HubMethods.ChooseKing, playerId);
     public Task<bool> SubmitQuestionAsync(SubmitQuestionRequest request) => ActAsync(HubMethods.SubmitQuestion, request);
+    public Task<bool> SubmitSpecialAnswerAsync(int optionIndex) => ActAsync(HubMethods.SubmitSpecialAnswer, optionIndex);
     public Task<bool> SubmitGuessAsync(int optionIndex) => ActAsync(HubMethods.SubmitGuess, optionIndex);
     public Task<bool> RevealAsync() => ActAsync(HubMethods.Reveal);
     public Task<bool> SkipQuestionAsync() => ActAsync(HubMethods.SkipQuestion);

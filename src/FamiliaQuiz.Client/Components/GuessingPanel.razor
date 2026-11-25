@@ -4,6 +4,8 @@
 
 @if (State.Round is { } round)
 {
+    var special = round.Kind == RoundKind.Special;
+    @if (special) { <div class="special-banner">🎲 Rodada especial!</div> }
     <div class="question-header">
         <span class="muted">Pergunta @round.Number sobre 👑 <strong>@State.King()?.Name</strong></span>
         <h1 class="question">@round.Text</h1>
@@ -11,12 +13,12 @@
 
     @if (State.AmIKing())
     {
-        <div class="options">
+        <div class="options @(special ? "options-grid" : "")">
             @for (var i = 0; i < round.Options.Count; i++)
             {
-                <div class="option @(i == State.CorrectOptionIndex ? "is-correct" : "")">
+                <div class="option @(special ? "option-card" : "") @(i == State.CorrectOptionIndex ? "is-correct" : "")">
                     <span class="option-key">@(i + 1)</span>
-                    <span class="grow">@round.Options[i]</span>
+                    <OptionVisual Option="round.Options[i]" />
                     @if (i == State.CorrectOptionIndex) { <span class="tag">sua resposta</span> }
                 </div>
             }
@@ -38,13 +40,13 @@
     }
     else
     {
-        <div class="options">
+        <div class="options @(special ? "options-grid" : "")">
             @for (var i = 0; i < round.Options.Count; i++)
             {
                 var idx = i;
-                <button class="option option-button @(_selected == idx ? "is-selected" : "")" data-enter-shortcut @onclick="() => _selected = idx">
+                <button class="option option-button @(special ? "option-card" : "") @(_selected == idx ? "is-selected" : "")" data-enter-shortcut @onclick="() => _selected = idx">
                     <span class="option-key">@(idx + 1)</span>
-                    <span class="grow">@round.Options[idx]</span>
+                    <OptionVisual Option="round.Options[idx]" />
                     @if (State.MyGuess == idx) { <span class="tag">enviada ✔</span> }
                 </button>
             }

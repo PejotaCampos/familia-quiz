@@ -185,7 +185,45 @@ button.option-key { cursor: pointer; }
 .is-selected .option-key { background: var(--accent); border-color: var(--accent); color: #fff; }
 .is-correct .option-key { background: var(--correct-line); border-color: var(--correct-line); color: #fff; }
 
-.pickers { display: block; font-size: .9rem; color: var(--muted); }
+.option { flex-wrap: wrap; }
+.option-text { flex: 1; }
+.option > .pickers { flex-basis: 100%; padding-left: 3rem; font-size: .9rem; color: var(--muted); }
+
+/* ---------- special rounds (picture cards) ---------- */
+
+.special-banner {
+    display: block; text-align: center;
+    margin: 0 0 1rem; padding: .5rem 1rem;
+    font-weight: 700; font-size: 1.1rem;
+    background: #fff1cc; border: 2px dashed var(--accent); border-radius: 12px;
+}
+
+.options-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+.option-card {
+    position: relative;
+    flex-direction: column; flex-wrap: nowrap; justify-content: center; text-align: center;
+    gap: .4rem; padding: 1rem .6rem;
+}
+.option-card .option-key { position: absolute; top: .5rem; left: .5rem; width: 1.9rem; height: 1.9rem; }
+.option-card .option-text { flex: none; font-weight: 600; }
+.option-card > .pickers { flex-basis: auto; padding-left: 0; }
+
+.option-visual {
+    position: relative;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 2rem; height: 2rem;
+}
+.option-emoji { font-size: 1.6rem; line-height: 1; }
+.option-visual img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+
+.option-card .option-visual { width: 7rem; height: 7rem; }
+.option-card .option-emoji { font-size: 4.5rem; }
+
+@media (max-width: 520px) {
+    .option-card .option-visual { width: 5rem; height: 5rem; }
+    .option-card .option-emoji { font-size: 3.2rem; }
+}
 
 .option-edit { display: flex; align-items: center; gap: .5rem; margin: .4rem 0; }
 .option-edit .input { margin-top: 0; }

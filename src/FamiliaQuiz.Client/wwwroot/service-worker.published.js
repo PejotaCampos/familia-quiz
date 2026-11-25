@@ -9,7 +9,8 @@ self.addEventListener('fetch', event => event.respondWith(onFetch(event)));
 const cacheNamePrefix = 'offline-cache-';
 const cacheName = `${cacheNamePrefix}${self.assetsManifest.version}`;
 const offlineAssetsInclude = [ /\.dll$/, /\.pdb$/, /\.wasm/, /\.html/, /\.js$/, /\.json$/, /\.css$/, /\.woff$/, /\.png$/, /\.jpe?g$/, /\.gif$/, /\.ico$/, /\.blat$/, /\.dat$/, /\.webmanifest$/ ];
-const offlineAssetsExclude = [ /^service-worker\.js$/ ];
+// Special-round pictures are loaded on demand (only the 4 of the current round), not pre-cached.
+const offlineAssetsExclude = [ /^service-worker\.js$/, /^images\/special\// ];
 
 // The service worker sits at the app root, so its own folder is the base path
 // ("/" locally, "/familia-quiz/" on GitHub Pages).

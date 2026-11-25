@@ -13,24 +13,34 @@ public sealed class GameRoom
     private readonly object _sync = new();
     private readonly List<Player> _players = [];
     private readonly HashSet<string> _usedQuestionIds = [];
+    private readonly HashSet<string> _usedThemeIds = [];
     private readonly List<string> _topPlayerIds = [];
+    private readonly IReadOnlyList<SpecialTheme> _specialThemes;
     private readonly TimeProvider _time;
     private Round? _round;
     private int _roundNumber;
 
-    public GameRoom(string code, int stepCount, TimeProvider? time = null)
+    // Special round: at most one per reign, triggered when a guesser reaches the middle step.
+    private bool _specialUsedThisReign;
+    private bool _nextRoundIsSpecial;
+
+    public GameRoom(string code, int stepCount, IReadOnlyList<SpecialTheme>? specialThemes = null, TimeProvider? time = null)
     {
         if (stepCount is < GameLimits.MinSteps or > GameLimits.MaxSteps)
             throw new GameException(ErrorCode.InvalidStepCount);
 
         Code = code;
         StepCount = stepCount;
+        _specialThemes = specialThemes ?? [];
         _time = time ?? TimeProvider.System;
         LastActivity = _time.GetUtcNow();
     }
 
     public string Code { get; }
     public int StepCount { get; }
+
+    /// <summary>Reaching this step (first time in a reign) makes the next round a special round.</summary>
+    public int MiddleStep => (StepCount + 1) / 2;
 
     public GamePhase Phase { get; private set; } = GamePhase.Lobby;
     public string HostPlayerId { get; private set; } = "";
@@ -127,7 +137,7 @@ public sealed class GameRoom
                        ?? throw new GameException(ErrorCode.PlayerNotFound);
 
             king.Position = 0; // the King is off the stairs; when dethroned they start at the bottom
-            KingPlayerId = king.Id;
+            StartReign(king.Id);
             StartPicking();
         }
     }
@@ -166,7 +176,27 @@ public sealed class GameRoom
             RequirePhase(GamePhase.KingPicking);
 
             _roundNumber++;
-            _round = new Round(_roundNumber, text, cleanOptions, correctOptionIndex, sourceQuestionId);
+            _round = new Round(_roundNumber, RoundKind.Normal, null, text,
+                cleanOptions.Select(o => new RoundOptionDto { Text = o }).ToList(), sourceQuestionId)
+            {
+                CorrectOptionIndex = correctOptionIndex,
+            };
+            Phase = GamePhase.Guessing;
+            Touch();
+        }
+    }
+
+    /// <summary>During a special round, the King secretly picks one of the theme's options.</summary>
+    public void SubmitSpecialAnswer(string byPlayerId, int optionIndex)
+    {
+        lock (_sync)
+        {
+            RequireKing(byPlayerId);
+            RequirePhase(GamePhase.SpecialPicking);
+            var round = _round!;
+            if (optionIndex < 0 || optionIndex >= round.Options.Count) throw new GameException(ErrorCode.InvalidOption);
+
+            round.CorrectOptionIndex = optionIndex;
             Phase = GamePhase.Guessing;
             Touch();
         }
@@ -182,19 +212,23 @@ public sealed class GameRoom
         }
     }
 
-    /// <summary>The King can always skip: the question is dropped and nobody moves.</summary>
+    /// <summary>
+    /// The King can always skip: the question is dropped and nobody moves.
+    /// A skipped special round still counts as this reign's special round.
+    /// </summary>
     public void SkipQuestion(string byPlayerId)
     {
         lock (_sync)
         {
             RequireKing(byPlayerId);
-            RequirePhase(GamePhase.Guessing);
+            if (Phase is not (GamePhase.Guessing or GamePhase.SpecialPicking)) throw new GameException(ErrorCode.WrongPhase);
             StartPicking();
         }
     }
 
     /// <summary>
-    /// After the reveal: start the next question, or crown the player who reached the top.
+    /// After the reveal: crown the player who reached the top, or start the next question
+    /// (a special round if one was triggered).
     /// When several players reached the top together, the King must pick one via <paramref name="nextKingPlayerId"/>.
     /// </summary>
     public void ContinueAfterReveal(string byPlayerId, string? nextKingPlayerId)
@@ -215,12 +249,19 @@ public sealed class GameRoom
 
             if (newKing is not null)
             {
-                KingPlayerId = newKing;
                 // v1 rule: when a new King is crowned, everyone restarts at the bottom.
                 foreach (var p in _players) p.Position = 0;
+                StartReign(newKing);
+                StartPicking();
             }
-
-            StartPicking();
+            else if (_nextRoundIsSpecial)
+            {
+                StartSpecialRound();
+            }
+            else
+            {
+                StartPicking();
+            }
         }
     }
 
@@ -263,6 +304,7 @@ public sealed class GameRoom
             var isKing = viewerPlayerId == KingPlayerId;
             var round = _round;
             var showAnswer = round is not null && (Phase == GamePhase.Reveal || (isKing && Phase == GamePhase.Guessing));
+            var inReign = Phase is GamePhase.KingPicking or GamePhase.SpecialPicking or GamePhase.Guessing or GamePhase.Reveal;
 
             var state = new RoomStateDto
             {
@@ -282,12 +324,21 @@ public sealed class GameRoom
                     IsKing = p.Id == KingPlayerId,
                     HasGuessed = round is not null && round.Guesses.ContainsKey(p.Id),
                 }).ToList(),
+                SpecialStep = inReign && !_specialUsedThisReign && _specialThemes.Count > 0 ? MiddleStep : null,
+                NextRoundIsSpecial = Phase == GamePhase.Reveal && _nextRoundIsSpecial,
                 UsedQuestionIds = _usedQuestionIds.ToList(),
             };
 
-            if (round is not null && Phase is GamePhase.Guessing or GamePhase.Reveal)
+            if (round is not null && Phase is GamePhase.SpecialPicking or GamePhase.Guessing or GamePhase.Reveal)
             {
-                state.Round = new RoundDto { Number = round.Number, Text = round.Text, Options = round.Options.ToList() };
+                state.Round = new RoundDto
+                {
+                    Number = round.Number,
+                    Kind = round.Kind,
+                    ThemeId = round.ThemeId,
+                    Text = round.Text,
+                    Options = round.Options.Select(o => new RoundOptionDto { Text = o.Text, Emoji = o.Emoji, Image = o.Image }).ToList(),
+                };
                 state.MyGuess = round.Guesses.TryGetValue(viewerPlayerId, out var g) ? g : null;
                 if (showAnswer) state.CorrectOptionIndex = round.CorrectOptionIndex;
 
@@ -320,19 +371,57 @@ public sealed class GameRoom
                 player.Position = Math.Min(StepCount, player.Position + 1);
         }
 
+        var guessers = _players.Where(p => p.Id != KingPlayerId).ToList();
         _topPlayerIds.Clear();
-        _topPlayerIds.AddRange(_players.Where(p => p.Id != KingPlayerId && p.Position >= StepCount).Select(p => p.Id));
+        _topPlayerIds.AddRange(guessers.Where(p => p.Position >= StepCount).Select(p => p.Id));
+
+        // Crowning wins over a special round; otherwise the first time someone reaches the middle, it's special time.
+        _nextRoundIsSpecial = _topPlayerIds.Count == 0
+            && !_specialUsedThisReign
+            && _specialThemes.Count > 0
+            && guessers.Any(p => p.Position >= MiddleStep);
 
         if (round.SourceQuestionId is not null) _usedQuestionIds.Add(round.SourceQuestionId);
         Phase = GamePhase.Reveal;
         Touch();
     }
 
+    private void StartReign(string kingPlayerId)
+    {
+        KingPlayerId = kingPlayerId;
+        _specialUsedThisReign = false;
+        _nextRoundIsSpecial = false;
+    }
+
     private void StartPicking()
     {
         _round = null;
         _topPlayerIds.Clear();
+        _nextRoundIsSpecial = false;
         Phase = GamePhase.KingPicking;
+        Touch();
+    }
+
+    private void StartSpecialRound()
+    {
+        // Prefer themes this room has not seen yet; start over once all were played.
+        var fresh = _specialThemes.Where(t => !_usedThemeIds.Contains(t.Id)).ToList();
+        if (fresh.Count == 0)
+        {
+            _usedThemeIds.Clear();
+            fresh = _specialThemes.ToList();
+        }
+        var theme = fresh[Random.Shared.Next(fresh.Count)];
+        _usedThemeIds.Add(theme.Id);
+
+        _specialUsedThisReign = true;
+        _nextRoundIsSpecial = false;
+        _topPlayerIds.Clear();
+        _roundNumber++;
+        _round = new Round(_roundNumber, RoundKind.Special, theme.Id, theme.Text,
+            theme.Options.Select(o => new RoundOptionDto { Text = o.Text, Emoji = o.Emoji, Image = o.Image }).ToList(),
+            sourceQuestionId: null);
+        Phase = GamePhase.SpecialPicking;
         Touch();
     }
 
@@ -361,13 +450,18 @@ public sealed class GameRoom
     private static string NewId(int length) =>
         RandomNumberGenerator.GetString("abcdefghijkmnpqrstuvwxyz23456789", length);
 
-    private sealed class Round(int number, string text, List<string> options, int correctOptionIndex, string? sourceQuestionId)
+    private sealed class Round(int number, RoundKind kind, string? themeId, string text, List<RoundOptionDto> options, string? sourceQuestionId)
     {
         public int Number { get; } = number;
+        public RoundKind Kind { get; } = kind;
+        public string? ThemeId { get; } = themeId;
         public string Text { get; } = text;
-        public List<string> Options { get; } = options;
-        public int CorrectOptionIndex { get; } = correctOptionIndex;
+        public List<RoundOptionDto> Options { get; } = options;
         public string? SourceQuestionId { get; } = sourceQuestionId;
+
+        /// <summary>The King's secret answer (-1 until chosen in a special round).</summary>
+        public int CorrectOptionIndex { get; set; } = -1;
+
         public Dictionary<string, int> Guesses { get; } = [];
     }
 }

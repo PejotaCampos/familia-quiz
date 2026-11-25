@@ -1,0 +1,74 @@
+@implements IDisposable
+@inject GameClient Game
+@inject KeyboardService Keyboard
+
+@if (State.Round is { } round)
+{
+    <div class="special-banner">🎲 Rodada especial!</div>
+    <div class="question-header">
+        <span class="muted">Pergunta @round.Number sobre 👑 <strong>@State.King()?.Name</strong></span>
+        <h1 class="question">@round.Text</h1>
+    </div>
+
+    @if (State.AmIKing())
+    {
+        <p class="muted">Escolha a sua resposta — só você vai ver. Depois os outros tentam adivinhar.</p>
+        <div class="options options-grid">
+            @for (var i = 0; i < round.Options.Count; i++)
+            {
+                var idx = i;
+                <button class="option option-button option-card @(_selected == idx ? "is-selected" : "")" data-enter-shortcut
+                        @onclick="() => _selected = idx">
+                    <span class="option-key">@(idx + 1)</span>
+                    <OptionVisual Option="round.Options[idx]" />
+                </button>
+            }
+        </div>
+        <div class="row wrap">
+            <button class="btn btn-primary grow" disabled="@(_selected is null || _busy)" @onclick="ConfirmAsync">
+                Esta é a minha resposta <span class="kbd">Enter</span>
+            </button>
+            <button class="btn" @onclick="Game.SkipQuestionAsync">Pular</button>
+        </div>
+    }
+    else
+    {
+        <div class="options options-grid">
+            @for (var i = 0; i < round.Options.Count; i++)
+            {
+                <div class="option option-card">
+                    <span class="option-key">@(i + 1)</span>
+                    <OptionVisual Option="round.Options[i]" />
+                </div>
+            }
+        </div>
+        <p class="big center">@State.King()?.Name está escolhendo… prepare o seu palpite!</p>
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public RoomStateDto State { get; set; } = default!;
+
+    private int? _selected;
+    private bool _busy;
+
+    protected override void OnInitialized() => Keyboard.KeyPressed += OnKeyAsync;
+
+    private async Task OnKeyAsync(string key)
+    {
+        if (!State.AmIKing()) return;
+        if (key == "Enter") await ConfirmAsync();
+        else if (int.TryParse(key, out var n) && State.Round is { } r && n >= 1 && n <= r.Options.Count) _selected = n - 1;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ConfirmAsync()
+    {
+        if (_selected is not { } choice || _busy) return;
+        _busy = true;
+        try { await Game.SubmitSpecialAnswerAsync(choice); }
+        finally { _busy = false; }
+    }
+
+    public void Dispose() => Keyboard.KeyPressed -= OnKeyAsync;
+}

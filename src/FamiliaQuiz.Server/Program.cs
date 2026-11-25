@@ -12,6 +12,7 @@ if (!string.IsNullOrEmpty(port)) builder.WebHost.UseUrls($"http://0.0.0.0:{port}
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<RoomRegistry>();
 builder.Services.AddSingleton<QuestionBank>();
+builder.Services.AddSingleton<SpecialRoundBank>();
 builder.Services.AddHostedService<IdleRoomCleanupService>();
 
 builder.Services.AddSignalR(options =>

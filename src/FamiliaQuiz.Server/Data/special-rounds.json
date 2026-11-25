@@ -1,0 +1,22 @@
+[
+  {
+    "id": "arma-zumbi",
+    "text": "Qual arma eu escolheria para um apocalipse zumbi?",
+    "options": [
+      { "text": "Katana", "emoji": "🗡️", "image": null },
+      { "text": "Taco de beisebol", "emoji": "⚾", "image": null },
+      { "text": "Arco e flecha", "emoji": "🏹", "image": null },
+      { "text": "Machado", "emoji": "🪓", "image": null }
+    ]
+  },
+  {
+    "id": "caminho-aventura",
+    "text": "Que caminho eu escolheria para uma aventura?",
+    "options": [
+      { "text": "Floresta misteriosa", "emoji": "🌲", "image": null },
+      { "text": "Montanha gelada", "emoji": "🏔️", "image": null },
+      { "text": "Deserto escaldante", "emoji": "🏜️", "image": null },
+      { "text": "Mar aberto", "emoji": "🌊", "image": null }
+    ]
+  }
+]

@@ -71,6 +71,10 @@ public sealed class GameHub(RoomRegistry rooms, QuestionBank questions, ILogger<
     public Task<OperationResult> SubmitQuestion(SubmitQuestionRequest request) =>
         Act((room, me) => room.SubmitQuestion(me, request.Text, request.Options, request.CorrectOptionIndex, request.SourceQuestionId));
 
+    [HubMethodName(HubMethods.SubmitSpecialAnswer)]
+    public Task<OperationResult> SubmitSpecialAnswer(int optionIndex) =>
+        Act((room, me) => room.SubmitSpecialAnswer(me, optionIndex));
+
     [HubMethodName(HubMethods.SubmitGuess)]
     public Task<OperationResult> SubmitGuess(int optionIndex) => Act((room, me) => room.SubmitGuess(me, optionIndex));
 

@@ -98,11 +98,30 @@ namespace FamiliaQuiz.Shared
         public bool HasGuessed { get; set; }
     }
 
+    public class RoundOptionDto
+    {
+        public string Text { get; set; } = "";
+
+        /// <summary>Optional emoji shown when there is no image (or while it loads).</summary>
+        public string? Emoji { get; set; }
+
+        /// <summary>
+        /// Optional picture, as a path relative to the client's special-round image folder
+        /// (e.g. "arma-zumbi/katana.webp"). Clients resolve it to their own asset location.
+        /// </summary>
+        public string? Image { get; set; }
+    }
+
     public class RoundDto
     {
         public int Number { get; set; }
+        public RoundKind Kind { get; set; }
+
+        /// <summary>Theme id for special rounds (null for normal rounds).</summary>
+        public string? ThemeId { get; set; }
+
         public string Text { get; set; } = "";
-        public List<string> Options { get; set; } = new List<string>();
+        public List<RoundOptionDto> Options { get; set; } = new List<RoundOptionDto>();
     }
 
     public class GuessDto
@@ -129,7 +148,7 @@ namespace FamiliaQuiz.Shared
 
         public List<PlayerDto> Players { get; set; } = new List<PlayerDto>();
 
-        /// <summary>The question being played (Guessing and Reveal phases).</summary>
+        /// <summary>The question being played (SpecialPicking, Guessing and Reveal phases).</summary>
         public RoundDto? Round { get; set; }
 
         /// <summary>Only set for the King during Guessing, and for everyone during Reveal.</summary>
@@ -146,6 +165,15 @@ namespace FamiliaQuiz.Shared
         /// Several = the current King must choose one of them.
         /// </summary>
         public List<string> TopPlayerIds { get; set; } = new List<string>();
+
+        /// <summary>
+        /// The step that triggers this reign's special round (reaching it makes the next round special).
+        /// Null when the special round was already played this reign, or none are available.
+        /// </summary>
+        public int? SpecialStep { get; set; }
+
+        /// <summary>During Reveal: true when the next round will be a special round.</summary>
+        public bool NextRoundIsSpecial { get; set; }
 
         /// <summary>Bank question ids already played in this room.</summary>
         public List<string> UsedQuestionIds { get; set; } = new List<string>();

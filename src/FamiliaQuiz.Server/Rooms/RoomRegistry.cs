@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using FamiliaQuiz.Server.Game;
+using FamiliaQuiz.Server.Questions;
 
 namespace FamiliaQuiz.Server.Rooms;
 
@@ -8,7 +9,7 @@ namespace FamiliaQuiz.Server.Rooms;
 /// In-memory store of rooms and of which SignalR connection belongs to which player.
 /// Rooms are lost on restart, which is acceptable (Render free tier has no persistent disk).
 /// </summary>
-public sealed class RoomRegistry(TimeProvider time)
+public sealed class RoomRegistry(TimeProvider time, SpecialRoundBank specialRounds)
 {
     // No vowels (avoids accidental words) and no look-alikes (0/O, 1/I).
     private const string CodeAlphabet = "BCDFGHJKLMNPQRSTVWXZ";
@@ -23,7 +24,7 @@ public sealed class RoomRegistry(TimeProvider time)
         while (true)
         {
             var code = RandomNumberGenerator.GetString(CodeAlphabet, CodeLength);
-            var room = new GameRoom(code, stepCount, time);
+            var room = new GameRoom(code, stepCount, specialRounds.Themes, time);
             if (_rooms.TryAdd(code, room)) return room;
         }
     }

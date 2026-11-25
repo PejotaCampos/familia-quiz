@@ -1,0 +1,18 @@
+@* Content of one answer option: picture (if any) with the emoji as fallback, then the label. *@
+
+@if (!string.IsNullOrEmpty(Option.Image) || !string.IsNullOrEmpty(Option.Emoji))
+{
+    <span class="option-visual" aria-hidden="true">
+        <span class="option-emoji">@(Option.Emoji ?? "❔")</span>
+        @if (!string.IsNullOrEmpty(Option.Image))
+        {
+            @* The image covers the emoji; if it fails to load it hides itself and the emoji shows. *@
+            <img src="images/special/@Option.Image" alt="" loading="lazy" onerror="this.hidden = true" />
+        }
+    </span>
+}
+<span class="option-text">@Option.Text</span>
+
+@code {
+    [Parameter, EditorRequired] public RoundOptionDto Option { get; set; } = default!;
+}

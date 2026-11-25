@@ -21,6 +21,9 @@
                     <p class="muted">Prepare-se para adivinhar!</p>
                 </div>
                 break;
+            case GamePhase.SpecialPicking:
+                <SpecialPickingPanel State="State" />
+                break;
             case GamePhase.Guessing:
                 <GuessingPanel State="State" />
                 break;
