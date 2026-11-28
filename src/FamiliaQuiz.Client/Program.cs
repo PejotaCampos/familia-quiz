@@ -11,5 +11,6 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddScoped<SessionStore>();
 builder.Services.AddScoped<KeyboardService>();
 builder.Services.AddScoped<GameClient>();
+builder.Services.AddScoped<QuestionBankFilter>();
 
 await builder.Build().RunAsync();

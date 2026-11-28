@@ -1,6 +1,7 @@
 @implements IDisposable
 @inject GameClient Game
 @inject KeyboardService Keyboard
+@inject QuestionBankFilter Filter
 
 <h1>Você é o Rei! 👑</h1>
 <p class="muted">Escolha ou escreva uma pergunta sobre você e marque a resposta certa — só você vai ver.</p>
@@ -45,14 +46,41 @@
 </form>
 
 <h2>Banco de perguntas</h2>
-<div class="row wrap">
-    <button class="btn btn-small" data-enter-shortcut @onclick="PickRandom">🎲 Pergunta aleatória</button>
-    <label class="checkbox"><input type="checkbox" @bind="_showUsed" /> mostrar já usadas</label>
+
+<input class="input bank-search" type="search" placeholder="🔍 Buscar pergunta…" aria-label="Buscar pergunta"
+       @bind="Filter.Search" @bind:event="oninput" />
+
+<div class="category-chips" role="group" aria-label="Categorias">
+    <button class="chip-filter @(Filter.Category is null ? "active" : "")" data-enter-shortcut
+            aria-pressed="@(Filter.Category is null)" @onclick="() => Filter.Category = null">
+        Todas <span class="chip-count">@CountFor(null)</span>
+    </button>
+    @foreach (var category in Categories)
+    {
+        <button class="chip-filter @(Filter.Category == category ? "active" : "")" data-enter-shortcut
+                aria-pressed="@(Filter.Category == category)" @onclick="() => ToggleCategory(category)">
+            @category <span class="chip-count">@CountFor(category)</span>
+        </button>
+    }
 </div>
+
+<div class="row wrap">
+    <button class="btn btn-small" data-enter-shortcut disabled="@(!VisibleBank.Any())" @onclick="PickRandom">🎲 Aleatória@(Filter.Category is null ? "" : $" de {Filter.Category}")</button>
+    <label class="checkbox"><input type="checkbox" @bind="Filter.ShowUsed" /> mostrar já usadas</label>
+    <span class="muted small bank-count">@VisibleBank.Count() de @(_bank?.Count ?? 0)</span>
+</div>
+
 <div class="bank">
     @if (_bank is null)
     {
-        <p class="muted">Carregando…</p>
+        <p class="muted bank-empty">Carregando…</p>
+    }
+    else if (!VisibleBank.Any())
+    {
+        <p class="muted bank-empty">
+            Nenhuma pergunta encontrada.
+            <button class="btn-link" @onclick="ClearFilters">Limpar filtros</button>
+        </p>
     }
     else
     {
@@ -74,11 +102,28 @@
     private List<string> _options = ["", "", "", ""];
     private int? _correct;
     private string? _sourceId;
-    private bool _showUsed;
     private bool _busy;
 
     private IEnumerable<QuestionDto> VisibleBank =>
-        (_bank ?? []).Where(q => _showUsed || !State.UsedQuestionIds.Contains(q.Id));
+        (_bank ?? []).Where(q => Filter.Matches(q, State.UsedQuestionIds));
+
+    private IEnumerable<string> Categories =>
+        (_bank ?? []).Select(q => q.Category).Where(c => !string.IsNullOrWhiteSpace(c))
+            .Distinct().OrderBy(c => c, StringComparer.CurrentCultureIgnoreCase);
+
+    /// <summary>How many questions a category chip would show, given the search and "used" settings.</summary>
+    private int CountFor(string? category) =>
+        (_bank ?? []).Count(q => (category is null || q.Category == category)
+                                 && Filter.MatchesIgnoringCategory(q, State.UsedQuestionIds));
+
+    private void ToggleCategory(string category) =>
+        Filter.Category = Filter.Category == category ? null : category;
+
+    private void ClearFilters()
+    {
+        Filter.Category = null;
+        Filter.Search = "";
+    }
 
     /// <summary>What is still missing before the question can be asked (null = ready).</summary>
     private string? Problem
@@ -110,8 +155,10 @@
 
     private void PickRandom()
     {
-        var candidates = (_bank ?? []).Where(q => !State.UsedQuestionIds.Contains(q.Id) && q.Id != _sourceId).ToList();
-        if (candidates.Count == 0) candidates = (_bank ?? []).ToList();
+        // Random within the current filter, preferring a different question than the one loaded.
+        var visible = VisibleBank.ToList();
+        var candidates = visible.Where(q => q.Id != _sourceId).ToList();
+        if (candidates.Count == 0) candidates = visible;
         if (candidates.Count > 0) Load(candidates[Random.Shared.Next(candidates.Count)]);
     }
 

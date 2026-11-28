@@ -60,7 +60,7 @@ p { margin: .5rem 0; }
 .conn-reconnecting, .conn-connecting { color: #ffd479; }
 .conn-disconnected { color: #ff9b94; }
 
-.content { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+.content { max-width: 1560px; margin: 0 auto; padding: 1rem; }
 
 .panel {
     background: var(--panel);
@@ -76,8 +76,13 @@ p { margin: .5rem 0; }
 
 /* Wide windows: phase panel left, stairs always visible on the right. */
 @media (min-width: 960px) {
-    .game-grid { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
+    .game-grid { grid-template-columns: minmax(0, 1fr) 400px; align-items: start; }
     .side-panel { position: sticky; top: 1rem; }
+}
+
+/* Large screens: the stairs are the scoreboard, so they get a bit more room than the question. */
+@media (min-width: 1280px) {
+    .game-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); }
 }
 
 .entry { max-width: 560px; margin: 0 auto; }
@@ -230,6 +235,23 @@ button.option-key { cursor: pointer; }
 .option-edit .input { margin-top: 0; }
 .option-edit.is-correct .input { border-color: var(--correct-line); background: var(--correct); }
 
+.bank-search { margin: 0 0 .6rem; }
+
+.category-chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .2rem; }
+.chip-filter {
+    display: inline-flex; align-items: center; gap: .35rem;
+    padding: .35rem .8rem; min-height: 2.3rem;
+    font: inherit; font-size: .95rem; font-weight: 600; color: var(--ink);
+    background: #fff; border: 2px solid var(--line); border-radius: 99px; cursor: pointer;
+}
+.chip-filter:hover { border-color: var(--accent); }
+.chip-filter:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.chip-filter.active { background: var(--primary); border-color: var(--primary); color: var(--primary-ink); }
+.chip-count { font-size: .75rem; font-weight: 700; opacity: .7; }
+
+.bank-count { margin-left: auto; }
+.bank-empty { padding: .8rem; margin: 0; }
+
 .bank {
     max-height: 40vh; overflow-y: auto;
     border: 1px solid var(--line); border-radius: 10px;
@@ -250,33 +272,35 @@ button.option-key { cursor: pointer; }
 .stairs-title { margin-top: 0; }
 
 .throne {
-    display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
-    padding: .6rem .8rem; margin-bottom: .6rem;
+    display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+    padding: .8rem 1rem; margin-bottom: .8rem;
     background: #fff6df; border: 2px solid var(--accent); border-radius: 12px;
-    font-size: 1.05rem;
+    font-size: 1.25rem;
 }
-.crown { font-size: 1.6rem; }
+.crown { font-size: 2.2rem; }
 
 .stairs { list-style: none; margin: 0; padding: 0; }
 
-/* Each step is shifted right as it goes up, so the list reads like a staircase. */
+/* Each step is shifted right as it goes up, so the list reads like a staircase.
+   Step height follows the window height and the number of steps, so the whole staircase
+   fits on screen (5 or 10 steps, laptop or big monitor). */
 .step {
-    display: flex; align-items: center; gap: .5rem;
-    min-height: 2.6rem;
-    margin-left: calc(var(--step) / var(--steps) * 30%);
-    padding: .25rem .5rem;
-    border-bottom: 4px solid #d8c4a6;
-    border-left: 4px solid #d8c4a6;
+    display: flex; align-items: center; gap: .6rem;
+    min-height: clamp(2.6rem, calc((100vh - 17rem) / (var(--steps) + 1)), 5rem);
+    margin-left: calc(var(--step) / var(--steps) * 38%);
+    padding: .3rem .6rem;
+    border-bottom: 5px solid #d8c4a6;
+    border-left: 5px solid #d8c4a6;
     background: linear-gradient(to top, #f6ecdc, transparent);
 }
 .step-top { border-color: var(--accent); background: linear-gradient(to top, #fff1cc, transparent); }
-.step-label { flex: none; width: 2.6rem; font-size: .8rem; color: var(--muted); text-align: center; }
-.step-players { display: flex; flex-wrap: wrap; gap: .3rem; }
+.step-label { flex: none; width: 3rem; font-size: 1.05rem; font-weight: 600; color: var(--muted); text-align: center; }
+.step-players { display: flex; flex-wrap: wrap; gap: .4rem; }
 
 .chip {
-    padding: .15rem .6rem; border-radius: 99px;
+    padding: .3rem .9rem; border-radius: 99px;
     background: #fff; border: 2px solid var(--line);
-    font-size: .95rem; font-weight: 600; white-space: nowrap;
+    font-size: 1.1rem; font-weight: 600; white-space: nowrap;
 }
 .chip-me { border-color: var(--primary); }
 
@@ -321,4 +345,7 @@ button.option-key { cursor: pointer; }
     .panel { padding: 1rem; }
     .question { font-size: 1.4rem; }
     .room-code { font-size: 2.4rem; }
+    .step { min-height: 2.6rem; margin-left: calc(var(--step) / var(--steps) * 25%); }
+    .chip { font-size: 1rem; padding: .2rem .7rem; }
+    .throne { font-size: 1.1rem; }
 }
