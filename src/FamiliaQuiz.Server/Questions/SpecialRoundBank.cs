@@ -26,7 +26,8 @@ public sealed class SpecialRoundBank
     {
         var ok = !string.IsNullOrWhiteSpace(theme.Id)
                  && !string.IsNullOrWhiteSpace(theme.Text)
-                 && theme.Options.Count is >= GameLimits.MinOptions and <= GameLimits.MaxOptions
+                 && theme.Options.Count is >= GameLimits.MinOptions and <= GameLimits.MaxSpecialOptions
+                 && theme.Options.Select(o => o.Text.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).Count() == theme.Options.Count
                  && theme.Options.All(o => !string.IsNullOrWhiteSpace(o.Text));
         if (!ok) logger.LogWarning("Ignoring invalid special round theme '{Id}'", theme.Id);
         return ok;

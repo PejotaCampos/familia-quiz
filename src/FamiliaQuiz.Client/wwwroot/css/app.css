@@ -217,11 +217,12 @@ button.option-key { cursor: pointer; }
 .option-emoji { font-size: 1.6rem; line-height: 1; }
 .option-visual img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 
-.option-card .option-visual { width: 7rem; height: 7rem; }
+.option-card .option-visual { width: 100%; max-width: 13rem; height: 8.5rem; }
+.option-card .option-visual img { border-radius: 8px; }
 .option-card .option-emoji { font-size: 4.5rem; }
 
 @media (max-width: 520px) {
-    .option-card .option-visual { width: 5rem; height: 5rem; }
+    .option-card .option-visual { height: 5.5rem; }
     .option-card .option-emoji { font-size: 3.2rem; }
 }
 

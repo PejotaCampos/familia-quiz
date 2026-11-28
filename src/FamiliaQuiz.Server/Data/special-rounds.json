@@ -1,7 +1,7 @@
 [
   {
     "id": "arma-zumbi",
-    "text": "Qual arma eu escolheria para um apocalipse zumbi?",
+    "text": "Qual arma o rei escolheria para um apocalipse zumbi?",
     "options": [
       { "text": "Katana", "emoji": "🗡️", "image": null },
       { "text": "Taco de beisebol", "emoji": "⚾", "image": null },
@@ -11,12 +11,133 @@
   },
   {
     "id": "caminho-aventura",
-    "text": "Que caminho eu escolheria para uma aventura?",
+    "text": "Que caminho o rei escolheria para uma aventura?",
     "options": [
       { "text": "Floresta misteriosa", "emoji": "🌲", "image": null },
       { "text": "Montanha gelada", "emoji": "🏔️", "image": null },
       { "text": "Deserto escaldante", "emoji": "🏜️", "image": null },
       { "text": "Mar aberto", "emoji": "🌊", "image": null }
+    ]
+  },
+  {
+    "id": "ave",
+    "text": "Qual ave mais maneira?",
+    "options": [
+      { "text": "Angry Bird", "emoji": "🐦", "image": "ave/angry-bird.webp" },
+      { "text": "Papa-Léguas", "emoji": "💨", "image": "ave/papa-leguas.webp" },
+      { "text": "Patolino", "emoji": "🦆", "image": "ave/patolino.webp" },
+      { "text": "Pica-Pau", "emoji": "🪵", "image": "ave/pica-pau.webp" }
+    ]
+  },
+  {
+    "id": "carro",
+    "text": "Qual carro eu escolheria?",
+    "options": [
+      { "text": "Conversível", "emoji": "🏎️", "image": "carro/conversivel.webp" },
+      { "text": "Fusca", "emoji": "🐞", "image": "carro/fusca.webp" },
+      { "text": "Peugeot", "emoji": "🚙", "image": "carro/peugeot.webp" },
+      { "text": "Esportivo", "emoji": "🚗", "image": "carro/esportivo.webp" }
+    ]
+  },
+  {
+    "id": "casa-dos-sonhos",
+    "text": "Qual seria a casa dos meus sonhos?",
+    "options": [
+      { "text": "Casa de campo", "emoji": "🏡", "image": "casa-dos-sonhos/campo.webp" },
+      { "text": "Casa moderna", "emoji": "🏢", "image": "casa-dos-sonhos/moderna.webp" },
+      { "text": "Casa na montanha", "emoji": "⛰️", "image": "casa-dos-sonhos/montanha.webp" },
+      { "text": "Casa na praia", "emoji": "🏖️", "image": "casa-dos-sonhos/praia.webp" }
+    ]
+  },
+  {
+    "id": "classe-rpg",
+    "text": "Que classe eu escolheria ser?",
+    "options": [
+      { "text": "Arqueiro", "emoji": "🏹", "image": "classe-rpg/arqueiro.webp" },
+      { "text": "Mago", "emoji": "🧙", "image": "classe-rpg/mago.webp" },
+      { "text": "Necromante", "emoji": "💀", "image": "classe-rpg/necromante.webp" },
+      { "text": "Guerreiro", "emoji": "⚔️", "image": "classe-rpg/guerreiro.webp" }
+    ]
+  },
+  {
+    "id": "dobra-avatar",
+    "text": "Se eu pudesse controlar um elemento, qual elemento eu escolheria?",
+    "options": [
+      { "text": "Água", "emoji": "💧", "image": "dobra-avatar/agua.webp" },
+      { "text": "Ar", "emoji": "🌪️", "image": "dobra-avatar/ar.webp" },
+      { "text": "Fogo", "emoji": "🔥", "image": "dobra-avatar/fogo.webp" },
+      { "text": "Terra", "emoji": "🪨", "image": "dobra-avatar/terra.webp" }
+    ]
+  },
+  {
+    "id": "cachorro",
+    "text": "Que cachorro eu teria?",
+    "options": [
+      { "text": "Beagle", "emoji": "🐶", "image": "cachorro/beagle.webp" },
+      { "text": "Golden Retriever", "emoji": "🦮", "image": "cachorro/golden.webp" },
+      { "text": "Mastim tibetano", "emoji": "🐕", "image": "cachorro/mastim.webp" },
+      { "text": "Pastor-alemão", "emoji": "🐕‍🦺", "image": "cachorro/pastor-alemao.webp" },
+      { "text": "Shih-tzu", "emoji": "🐩", "image": "cachorro/shih-tzu.webp" }
+    ]
+  },
+  {
+    "id": "ferias",
+    "text": "Onde eu passaria as férias dos sonhos?",
+    "options": [
+      { "text": "No campo", "emoji": "🌾", "image": "ferias/campo.webp" },
+      { "text": "Na praia", "emoji": "🏝️", "image": "ferias/praia.webp" },
+      { "text": "Na neve", "emoji": "❄️", "image": "ferias/neve.webp" },
+      { "text": "Numa cidade grande", "emoji": "🌃", "image": "ferias/cidade.webp" }
+    ]
+  },
+  {
+    "id": "gato",
+    "text": "Qual gato mais maneiro?",
+    "options": [
+      { "text": "Garfield", "emoji": "🐱", "image": "gato/garfield.webp" },
+      { "text": "Gato de Cheshire", "emoji": "😸", "image": "gato/cheshire.webp" },
+      { "text": "Gato de Botas", "emoji": "👢", "image": "gato/gato-de-botas.webp" },
+      { "text": "Tom", "emoji": "🐈", "image": "gato/tom.webp" }
+    ]
+  },
+  {
+    "id": "casa-hogwarts",
+    "text": "Em qual casa de Hogwarts eu gostaria de pertencer?",
+    "options": [
+      { "text": "Corvinal", "emoji": "🦅", "image": "casa-hogwarts/corvinal.webp" },
+      { "text": "Grifinória", "emoji": "🦁", "image": "casa-hogwarts/grifinoria.webp" },
+      { "text": "Lufa-Lufa", "emoji": "🦡", "image": "casa-hogwarts/lufa-lufa.webp" },
+      { "text": "Sonserina", "emoji": "🐍", "image": "casa-hogwarts/sonserina.webp" }
+    ]
+  },
+  {
+    "id": "vilao-terror",
+    "text": "Qual o rei escolheria enfrentar?",
+    "options": [
+      { "text": "O Exorcista", "emoji": "😱", "image": "vilao-terror/exorcista.webp" },
+      { "text": "Freddy Krueger", "emoji": "🔪", "image": "vilao-terror/freddy.webp" },
+      { "text": "It, a Coisa", "emoji": "🎈", "image": "vilao-terror/it.webp" },
+      { "text": "Jason", "emoji": "🏒", "image": "vilao-terror/jason.webp" }
+    ]
+  },
+  {
+    "id": "fobia",
+    "text": "O que me arrepia mais?",
+    "options": [
+      { "text": "Altura", "emoji": "🏙️", "image": "fobia/altura.webp" },
+      { "text": "Agulha no olho", "emoji": "💉", "image": "fobia/agulha.webp" },
+      { "text": "Barata", "emoji": "🪳", "image": "fobia/barata.webp" },
+      { "text": "Aranha", "emoji": "🕷️", "image": "fobia/aranha.webp" }
+    ]
+  },
+  {
+    "id": "rato",
+    "text": "Qual rato mais maneiro?",
+    "options": [
+      { "text": "Jerry", "emoji": "🐭", "image": "rato/jerry.webp" },
+      { "text": "Mickey", "emoji": "🐁", "image": "rato/mickey.webp" },
+      { "text": "Pikachu", "emoji": "⚡", "image": "rato/pikachu.webp" },
+      { "text": "Remy (Ratatouille)", "emoji": "🧀", "image": "rato/remy.webp" }
     ]
   }
 ]

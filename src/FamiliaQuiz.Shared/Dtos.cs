@@ -10,6 +10,9 @@ namespace FamiliaQuiz.Shared
         public const int DefaultSteps = 5;
         public const int MinOptions = 2;
         public const int MaxOptions = 4;
+
+        /// <summary>Special (picture) rounds may have a few more options than normal questions.</summary>
+        public const int MaxSpecialOptions = 6;
         public const int MaxPlayers = 20;
         public const int MaxNameLength = 24;
         public const int MaxQuestionLength = 200;
